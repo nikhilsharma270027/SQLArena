@@ -3,7 +3,6 @@
 
 import { useState, useMemo } from "react";
 import Link from "next/link";
-import { problems } from "@/src/lib/problems-data";
 import {
   Table,
   TableBody,
@@ -29,30 +28,71 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/src/components/ui/select";
+import useSWR from 'swr';
 
-const difficultyColors = {
-  Easy: "green",
-  Medium: "medium",
-  Hard: "red",
+const fetcher = (url: string) => fetch(url).then(res => res.json());
+
+// Fix: Difficulty badge variants
+const difficultyVariants = {
+  EASY: "green" as const,
+  MEDIUM: "medium" as const,
+  HARD: "red" as const,
 };
 
 export default function ProblemsPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [difficultyFilter, setDifficultyFilter] = useState("all");
+  
+  const { data, error, isLoading } = useSWR('/api/fetchProblems', fetcher, {
+    revalidateOnFocus: false,
+    revalidateOnReconnect: true,
+    refreshInterval: 0,
+  });
+  
+  // Fix: Handle different data structures
+  const problems = data?.problems || data || [];
+  
+  if (isLoading) return (
+    <div className="container mx-auto py-8 px-4">
+      <div className="animate-pulse">
+        <div className="h-8 bg-gray-200 rounded w-48 mb-4"></div>
+        <div className="h-4 bg-gray-200 rounded w-96 mb-8"></div>
+        <div className="space-y-2">
+          {[...Array(5)].map((_, i) => (
+            <div key={i} className="h-16 bg-gray-200 rounded"></div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+  
+  if (error) return (
+    <div className="container mx-auto py-8 px-4">
+      <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+        <p>Error loading problems: {error.message}</p>
+        <button 
+          onClick={() => window.location.reload()} 
+          className="mt-2 bg-red-500 text-white px-3 py-1 rounded text-sm"
+        >
+          Try Again
+        </button>
+      </div>
+    </div>
+  );
 
   const filteredProblems = useMemo(() => {
-    return problems.filter((problem) => {
+    return problems.filter((problem: any) => {
       const matchesSearch = problem.title
         .toLowerCase()
         .includes(searchTerm.toLowerCase()) ||
-        problem.description.toLowerCase().includes(searchTerm.toLowerCase());
+        (problem.description && problem.description.toLowerCase().includes(searchTerm.toLowerCase()));
       
       const matchesDifficulty =
         difficultyFilter === "all" || problem.difficulty === difficultyFilter;
       
       return matchesSearch && matchesDifficulty;
     });
-  }, [searchTerm, difficultyFilter]);
+  }, [problems, searchTerm, difficultyFilter]);
 
   return (
     <div className="container mx-auto py-8 px-4">
@@ -88,7 +128,7 @@ export default function ProblemsPage() {
         </Select>
       </div>
 
-      {/* Results Count */}
+      {/* Results Count - Fixed: use problems.length instead of problems.length */}
       <div className="mb-4 text-sm text-muted-foreground">
         Showing {filteredProblems.length} of {problems.length} problems
       </div>
@@ -114,7 +154,7 @@ export default function ProblemsPage() {
                 </TableCell>
               </TableRow>
             ) : (
-              filteredProblems.map((problem, index) => (
+              filteredProblems.map((problem: any, index: number) => (
                 <TableRow key={problem.id} className="group hover:bg-muted/50">
                   <TableCell className="font-medium">{index + 1}</TableCell>
                   <TableCell>
@@ -125,30 +165,24 @@ export default function ProblemsPage() {
                       {problem.title}
                     </Link>
                     <div className="text-xs text-muted-foreground mt-1">
-                      {problem.description.substring(0, 60)}...
+                      {problem.description?.substring(0, 60) || "No description available"}...
                     </div>
                   </TableCell>
                   <TableCell>
-                    <Badge
-                      variant={
-                        difficultyColors[
-                          problem.difficulty as keyof typeof difficultyColors
-                        ]
-                      }
-                    >
+                    <Badge variant={difficultyVariants[problem.difficulty as keyof typeof difficultyVariants]}>
                       {problem.difficulty}
                     </Badge>
                   </TableCell>
                   <TableCell className="text-center">
                     <div className="flex items-center justify-center gap-1">
                       <ThumbsUp className="h-3 w-3" />
-                      <span>{problem.likes.toLocaleString()}</span>
+                      <span>{problem.likes?.toLocaleString() || 0}</span>
                     </div>
                   </TableCell>
                   <TableCell className="text-center">
                     <div className="flex items-center justify-center gap-1">
                       <MessageCircle className="h-3 w-3" />
-                      <span>{problem.submissions.toLocaleString()}</span>
+                      <span>{problem.submissions?.toLocaleString() || 0}</span>
                     </div>
                   </TableCell>
                   <TableCell className="text-right">

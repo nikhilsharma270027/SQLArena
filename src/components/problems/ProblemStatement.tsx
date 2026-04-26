@@ -6,7 +6,7 @@ export function ProblemStatement({ problem }: { problem: Problem }) {
     <div className="prose dark:prose-invert max-w-none">
       <h1 className="text-2xl font-bold">{problem.title}</h1>
       <div className="text-muted-foreground text-sm mb-4">
-        Difficulty: {problem.difficulty} | Points: {problem.points}
+        Difficulty: {problem.difficulty} 
       </div>
       <div className="whitespace-pre-wrap">{problem.description}</div>
       {problem.examples && (

@@ -53,5 +53,31 @@ export const problems: Problem[] = [
     ],
     starterQuery: "SELECT department, AVG(salary) AS average_salary FROM employees GROUP BY department;",
   },
+  {
+    id: "4",
+    title: "Employees with a Specific Job Title",
+    description: "Write a query to find employees with a specific job title. Return their name, department, and job title.",
+    difficulty: "Easy",
+    points: 10,
+    likes: 35,
+    submissions: 110,
+    examples: [
+      { input: "Table employees", output: "Alice, Engineering, Engineer" },
+    ],
+    starterQuery: "SELECT name, department, job_title FROM employees WHERE job_title = 'Engineer';",
+  },
+  {
+    id: "5",
+    title: "Departments with More Than 5 Employees",
+    description: "Write a query to find departments with more than 5 employees. Return the department name and the number of employees.",
+    difficulty: "Hard",
+    points: 15,
+    likes: 30,
+    submissions: 95,
+    examples: [
+      { input: "Table employees", output: "Sales, 3" },
+    ],
+    starterQuery: "SELECT department, COUNT(*) AS num_employees FROM employees GROUP BY department HAVING COUNT(*) > 5;",
+  },
   
 ];

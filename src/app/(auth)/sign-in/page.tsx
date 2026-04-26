@@ -12,7 +12,7 @@ export default function SignIn() {
       {/* LEFT IMAGE (50%) */}
       <div className="relative h-full md:w-0 sm:w-0 xl:w-1/2 lg:w-1/2">
         <Image
-          src="/login.jpg"
+          src="/sql.png"
           alt="auth"
           fill
           sizes="50vw"

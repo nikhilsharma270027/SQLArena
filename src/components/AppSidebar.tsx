@@ -2,8 +2,8 @@
 
 import Link from "next/link";
 import { motion } from "motion/react";
-import { usePathname } from "next/navigation";
-import { Home, Trophy, BarChart3, Swords, Bug, Moon, Sun, Star, ChevronUp } from "lucide-react";
+import { usePathname, useRouter } from "next/navigation";
+import { Home, Trophy, BarChart3, Swords, Bug, Moon, Sun, Star, ChevronUp, ServerCrash } from "lucide-react";
 import { useTheme } from "next-themes";
 
 import {
@@ -23,26 +23,41 @@ import { Avatar, AvatarFallback } from "@/src/components/ui/avatar";
 import Image from "next/image";
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
 import { Separator } from "@radix-ui/react-separator";
-
-const user = {
-  name: "ravi2025123459905",
-  email: "ravi202512345@gmail.com",
-  rating: 0,
-};
+import { signOut } from "better-auth/api";
+import { useAuth } from "../context/AuthContext";
+import { authClient } from "../lib/auth-client";
+import { toast } from "sonner";
+import { useEffect, useRef } from "react";
 
 const navItems = [
   { name: "Home", href: "/", icon: Home },
+  { name: "Problems", href: "/problems", icon: ServerCrash },
   { name: "Leaderboard", href: "/leaderboard", icon: Trophy },
   { name: "My Statistics", href: "/statistics", icon: BarChart3 },
-  { name: "Battle History", href: "/battles", icon: Swords },
-  { name: "Report a Bug", href: "/report", icon: Bug },
+  // { name: "Battle History", href: "/battles", icon: Swords },
+  // { name: "Report a Bug", href: "/report", icon: Bug },
 ];
 
 export function AppSidebar() {
+  const router = useRouter();
+  const { user } = useAuth();
+  // if(!currentUser)
+  // router.push("/sign-in"); // or a loading state
   const pathname = usePathname();
   const { theme, setTheme } = useTheme();
-  const { state } = useSidebar(); // 👈 get collapsed/expanded state
+  const { state, setOpen } = useSidebar(); // 👈 get collapsed/expanded state
   const isCollapsed = state === "collapsed";
+
+  const previousPathname = useRef(pathname);
+
+// Add this useEffect
+useEffect(() => {
+  // Only close if the pathname actually changed (navigation occurred)
+  if (previousPathname.current !== pathname) {
+    setOpen(false);
+    previousPathname.current = pathname;
+  }
+}, [pathname, setOpen]);
 
   return (
     <Sidebar collapsible="icon" className={`relative h-screen ${isCollapsed ? "w-16" : "w-64"} transition-width duration-300`}>
@@ -116,7 +131,7 @@ export function AppSidebar() {
             {/* Rating - hide text when collapsed */}
             <div className="mb-4 flex items-center gap-2 px-2">
               <Star className="h-4 w-4 fill-yellow-500 text-yellow-500" />
-              <span className="text-sm font-medium">Rating: {user.rating}</span>
+              <span className="text-sm font-medium">Rating: 0</span>
             </div>
           </>
         )}
@@ -126,31 +141,52 @@ export function AppSidebar() {
           <Popover>
             <PopoverTrigger asChild>
               <div
-                className={`flex items-center gap-3 rounded-2xl px-2 py-2 hover:bg-sidebar-accent ${isCollapsed ? "justify-center" : ""}`}>
-                <Avatar className="h-8 w-8">
-                  <AvatarFallback className="bg-sidebar-primary text-sidebar-primary-foreground text-xs">
-                    {user.name.slice(0, 2).toUpperCase()}
+                className={`flex items-center gap-2 px-2 py-2 hover:bg-sidebar-accent ${isCollapsed ? "justify-center" : "justify-start"} `}>
+                <Avatar className="h-8 w-8 rounded-full right-2">
+                  <AvatarFallback className="bg-sidebar-accent rounded text-sidebar-primary border-2 text-xs">
+                    {user?.name.slice(0, 1).toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
                 {!isCollapsed && (
                   <div className="flex flex-col overflow-hidden">
-                    <span className="truncate text-sm font-medium">{user.name}</span>
-                    <span className="truncate text-xs text-sidebar-foreground/60">{user.email}</span>
+                    <span className="truncate text-sm font-medium">{user?.name}</span>
+                    <span className="truncate text-xs text-sidebar-foreground/60 line-clapm-3">{user?.email}</span>
                   </div>
                 )}
 
-                {!isCollapsed && (<ChevronUp /> ) /* Show chevron only when expanded */}
+                {!isCollapsed && <ChevronUp className="bg-gray-300 border rounded-full" /> /* Show chevron only when expanded */}
               </div>
             </PopoverTrigger>
             <PopoverContent align="end" className="max-w-fit text-center mb-3">
-              <div className="flex flex-col overflow-hidden">
-                    <span className="truncate text-start text-sm font-medium">{user.name.slice(0, 4).toUpperCase()}</span>
-                    <span className="truncate text-xs text-sidebar-foreground/60">{user.email}</span>
-                  </div>
-              <Separator className="border" /> 
+              {user ? (
+                <div className="flex flex-col overflow-hidden">
+                  <span className="truncate text-start text-sm font-medium">{user.name.slice(0, 4).toUpperCase()}</span>
+                  <span className="truncate text-xs text-sidebar-foreground/60 ">{user.email}</span>
+                </div>
+              ) : (
+                <div className="flex flex-col overflow-hidden">
+                  <span className="truncate text-start text-sm font-medium">Guest</span>
+                  <span className="truncate text-xs text-sidebar-foreground/60">Not signed in</span>
+                </div>
+              )}
+              <Separator className="border" />
 
-                 <span className="text-start hover:bg-grey-500 hover:dark:bg-grey-600">Profile</span>
-                 <span className="text-start hover:bg-grey-300 hover:dark:bg-grey-600">Logout</span>
+              <span className="text-start hover:bg-grey-500 hover:dark:bg-grey-600">Profile</span>
+              {user ? (
+                <Button
+                  className="text-start hover:bg-grey-300 hover:dark:bg-grey-600"
+                  onClick={async () => {
+                    await authClient.signOut();
+                    toast.success("Signed out successfully");
+                    router.push("/sign-in");
+                  }}>
+                  Logout
+                </Button>
+              ) : (
+                <Button className="text-start hover:bg-grey-300 hover:dark:bg-grey-600" onClick={() => router.push("/sign-in")}>
+                  Sign In
+                </Button>
+              )}
             </PopoverContent>
           </Popover>
         </div>

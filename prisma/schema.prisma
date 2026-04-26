@@ -12,29 +12,34 @@ datasource db {
   provider = "postgresql"
 }
 
-// Primsa schema according to betterauth auth
+// Prisma schema according to Better Auth
 
 model User {
-  id            String     @id
+  id            String    @id @default(cuid())
   name          String
-  email         String     @unique
-  emailVerified Boolean    @default(false)
-  image         String?    @default("https://ui-avatars.com/api/?name=User&background=random")
-
+  email         String    @unique
+  emailVerified Boolean   @default(false)
+  image         String?   @default("https://ui-avatars.com/api/?name=User&background=random")
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
   password      String?
-  username      String?    @unique
-  role          String?    @default("user")
- 
+  username      String?   @unique
+  role          String?   @default("user")
+  lastLogin     DateTime?
+  
   sessions      Session[]
   accounts      Account[]
-
-  lastLogin     DateTime?
+  
+  // New relationships for likes and submissions
+  likedProblems   ProblemLike[]
+  problemSubmissions ProblemSubmission[]
 
   @@map("user")
 }
 
 model Session {
-  id        String   @id
+  id        String   @id @default(cuid())
   expiresAt DateTime
   token     String   @unique
   createdAt DateTime @default(now())
@@ -50,11 +55,10 @@ model Session {
 }
 
 model Account {
-  id                    String   @id
+  id                    String   @id @default(cuid())
   accountId             String
   providerId            String
   userId                String
-
   user                  User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   accessToken           String?
@@ -76,11 +80,11 @@ model Verification {
   identifier String
   value      String
   expiresAt  DateTime
-
   createdAt  DateTime  @default(now())
   updatedAt  DateTime  @updatedAt
-}
 
+  @@map("verification")
+}
 
 // Problem schema
 model Problem {
@@ -92,6 +96,61 @@ model Problem {
   solutionQuery String    @db.Text
   expectedResult Json?     
   createdAt     DateTime  @default(now())
+  
+  // Remove these fields:
+  // likes         Int       @default(0)
+  // submissions   Int       @default(0)
+  
+  // New relationships
+  likes         ProblemLike[]
+  submissions   ProblemSubmission[]
+}
+
+// Junction table for user likes on problems
+model ProblemLike {
+  id         String   @id @default(cuid())
+  userId     String
+  problemId  String
+  createdAt  DateTime @default(now())
+  
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  problem    Problem  @relation(fields: [problemId], references: [id], onDelete: Cascade)
+  
+  // Ensure one user can like a problem only once
+  @@unique([userId, problemId])
+  @@map("problem_likes")
+}
+
+// Junction table for user submissions on problems
+model ProblemSubmission {
+  id          String   @id @default(cuid())
+  userId      String
+  problemId   String
+  code        String   @db.Text
+  status      SubmissionStatus @default(PENDING)
+  executionTime Int?
+  memory      Int?
+  submittedAt DateTime @default(now())
+  
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  problem     Problem  @relation(fields: [problemId], references: [id], onDelete: Cascade)
+  
+  // Optional: Track multiple submissions per user per problem
+  // Remove the unique constraint if you want multiple attempts
+  @@unique([userId, problemId]) // Uncomment if only one submission allowed
+  @@index([userId, problemId])
+  @@index([status])
+  @@map("problem_submissions")
+}
+
+// Submission status enum
+enum SubmissionStatus {
+  PENDING
+  ACCEPTED
+  WRONG_ANSWER
+  ERROR
+  TIME_LIMIT_EXCEEDED
+  MEMORY_LIMIT_EXCEEDED
 }
 
 enum Difficulty {

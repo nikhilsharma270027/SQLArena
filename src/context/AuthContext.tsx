@@ -102,6 +102,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     isAuthenticated: !!user,
     refreshAuth: () => fetchSession(true),
   };
+  console.log(user)
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
