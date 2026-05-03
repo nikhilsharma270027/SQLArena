@@ -31,12 +31,6 @@ model User {
   likedProblems   ProblemLike[]
   problemSubmissions ProblemSubmission[]
 
-  // Duel relationships
-  duelsAsPlayer1  DuelRoom[]   @relation("Player1")
-  duelsAsPlayer2  DuelRoom[]   @relation("Player2")
-  duelsWon        DuelRoom[]   @relation("Winner")
-  duelSubmissions DuelSubmission[]
-
   @@map("user")
 }
 
@@ -97,9 +91,6 @@ model Problem {
   solvedBy      ProblemSolved[]
   likes         ProblemLike[]
   submissions   ProblemSubmission[]
-  
-  // Duel relationship
-  duels         DuelRoom[]
 
   @@map("problem")
 }
@@ -167,45 +158,4 @@ model ProblemSolved {
   @@map("problem_solved")
 }
 
-model DuelRoom {
-  id          String      @id @default(cuid())
-  roomCode    String      @unique
-  problemId   String
-  player1Id   String
-  player2Id   String?
-  status      DuelStatus  @default(WAITING)
-  winnerId    String?
-  startedAt   DateTime?
-  endedAt     DateTime?
-  createdAt   DateTime    @default(now())
-  
-  player1     User        @relation("Player1", fields: [player1Id], references: [id])
-  player2     User?       @relation("Player2", fields: [player2Id], references: [id])  // ← Added ? here
-  winner      User?       @relation("Winner", fields: [winnerId], references: [id])
-  problem     Problem     @relation(fields: [problemId], references: [id])
-  
-  submissions DuelSubmission[]
-  
-  @@map("duel_rooms")
-}
 
-model DuelSubmission {
-  id          String      @id @default(cuid())
-  duelRoomId  String
-  userId      String
-  sql         String      @db.Text
-  isCorrect   Boolean     @default(false)
-  submittedAt DateTime    @default(now())
-  
-  duelRoom    DuelRoom    @relation(fields: [duelRoomId], references: [id])
-  user        User        @relation(fields: [userId], references: [id])
-  
-  @@map("duel_submissions")
-}
-
-enum DuelStatus {
-  WAITING
-  ACTIVE
-  FINISHED
-  CANCELLED
-}

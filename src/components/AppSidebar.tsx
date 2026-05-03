@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { motion } from "motion/react";
 import { usePathname, useRouter } from "next/navigation";
-import { Home, Trophy, BarChart3, Swords, Bug, Moon, Sun, Star, ChevronUp, ServerCrash } from "lucide-react";
+import { Home, Trophy, BarChart3, Swords, Bug, Moon, Sun, Star, ChevronUp, ServerCrash, LucideSword } from "lucide-react";
 import { useTheme } from "next-themes";
 
 import {
@@ -31,11 +31,12 @@ import { useEffect, useRef } from "react";
 
 const navItems = [
   { name: "Home", href: "/", icon: Home },
+  { name: "Duel", href: "/duel", icon: Swords },
   { name: "Problems", href: "/problems", icon: ServerCrash },
   { name: "Leaderboard", href: "/leaderboard", icon: Trophy },
   { name: "My Statistics", href: "/statistics", icon: BarChart3 },
-  // { name: "Battle History", href: "/battles", icon: Swords },
-  // { name: "Report a Bug", href: "/report", icon: Bug },
+  { name: "Battle History", href: "/battles", icon: LucideSword },
+  { name: "Report a Bug", href: "/report", icon: Bug },
 ];
 
 export function AppSidebar() {

@@ -28,7 +28,8 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Problem not ready' }, { status: 500 })
     }
 
-    const isCorrect = compareResults(userRows, problem.expectedResult as any[])
+    const isCorrectResult = compareResults(userRows, problem.expectedResult as any[])
+    const isCorrect = isCorrectResult.isCorrect
 
     // 4. Check if user already solved this problem
     const existingSolve = await prisma.problemSolved.findUnique({
