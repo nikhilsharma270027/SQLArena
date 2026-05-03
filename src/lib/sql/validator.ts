@@ -6,15 +6,23 @@ export function validateSql(sql: string): { valid: boolean; error?: string } {
     return { valid: false, error: 'Query cannot be empty' };
   }
   
-  const upper = trimmed.toUpperCase();
+  // Remove single-line comments (--)
+  const withoutComments = trimmed.replace(/^--.*$/gm, '').trim();
+  
+  if (!withoutComments) {
+    return { valid: false, error: 'Query cannot be empty' };
+  }
+  
+  const upper = withoutComments.toUpperCase();
 
-  // Must start with SELECT
-  if (!/^SELECT\s/i.test(upper)) {
+  // Check if it contains SELECT (not necessarily at the very start)
+  if (!/\bSELECT\b/i.test(upper)) {
     return { valid: false, error: 'Only SELECT queries are allowed' };
   }
 
-  // Block multiple statements
-  if (upper.includes(';') && !upper.endsWith(';')) {
+  // Block multiple statements (allow trailing semicolon)
+  const withoutTrailingSemicolon = upper.replace(/;$/, '');
+  if (withoutTrailingSemicolon.includes(';')) {
     return { valid: false, error: 'Multiple SQL statements are not allowed' };
   }
 

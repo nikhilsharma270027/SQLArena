@@ -90,6 +90,11 @@ export const auth = betterAuth({
         select: {
           username: true,
           role: true,
+          solvedProblems: {
+            select: {
+              problemId: true,
+            },
+          },
         },
       });
 
@@ -98,6 +103,7 @@ export const auth = betterAuth({
           ...user,
           username: dbUser?.username, 
           role: dbUser?.role || "user",
+          solvedProblems: dbUser?.solvedProblems || [],
           newField: "newField",
         },
         session,

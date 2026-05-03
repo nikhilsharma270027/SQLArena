@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -11,8 +5,6 @@ generator client {
 datasource db {
   provider = "postgresql"
 }
-
-// Prisma schema according to Better Auth
 
 model User {
   id            String    @id @default(cuid())
@@ -30,8 +22,12 @@ model User {
   
   sessions      Session[]
   accounts      Account[]
+
+  solvedProblems  ProblemSolved[]
+  totalSolved     Int       @default(0)
+  totalSubmissions Int      @default(0)
+  acceptanceRate   Float?
   
-  // New relationships for likes and submissions
   likedProblems   ProblemLike[]
   problemSubmissions ProblemSubmission[]
 
@@ -44,10 +40,8 @@ model Session {
   token     String   @unique
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
   ipAddress String?
   userAgent String?
-
   userId    String
   user      User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -60,7 +54,6 @@ model Account {
   providerId            String
   userId                String
   user                  User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
   accessToken           String?
   refreshToken          String?
   idToken               String?
@@ -68,7 +61,6 @@ model Account {
   refreshTokenExpiresAt DateTime?
   scope                 String?
   password              String?
-
   createdAt             DateTime @default(now())
   updatedAt             DateTime @updatedAt
 
@@ -86,7 +78,6 @@ model Verification {
   @@map("verification")
 }
 
-// Problem schema
 model Problem {
   id            String    @id @default(cuid())
   title         String
@@ -97,16 +88,13 @@ model Problem {
   expectedResult Json?     
   createdAt     DateTime  @default(now())
   
-  // Remove these fields:
-  // likes         Int       @default(0)
-  // submissions   Int       @default(0)
-  
-  // New relationships
+  solvedBy      ProblemSolved[]
   likes         ProblemLike[]
   submissions   ProblemSubmission[]
+
+  @@map("problem")
 }
 
-// Junction table for user likes on problems
 model ProblemLike {
   id         String   @id @default(cuid())
   userId     String
@@ -116,12 +104,10 @@ model ProblemLike {
   user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   problem    Problem  @relation(fields: [problemId], references: [id], onDelete: Cascade)
   
-  // Ensure one user can like a problem only once
   @@unique([userId, problemId])
   @@map("problem_likes")
 }
 
-// Junction table for user submissions on problems
 model ProblemSubmission {
   id          String   @id @default(cuid())
   userId      String
@@ -135,15 +121,11 @@ model ProblemSubmission {
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   problem     Problem  @relation(fields: [problemId], references: [id], onDelete: Cascade)
   
-  // Optional: Track multiple submissions per user per problem
-  // Remove the unique constraint if you want multiple attempts
-  @@unique([userId, problemId]) // Uncomment if only one submission allowed
   @@index([userId, problemId])
   @@index([status])
   @@map("problem_submissions")
 }
 
-// Submission status enum
 enum SubmissionStatus {
   PENDING
   ACCEPTED
@@ -151,10 +133,27 @@ enum SubmissionStatus {
   ERROR
   TIME_LIMIT_EXCEEDED
   MEMORY_LIMIT_EXCEEDED
+  
+  @@map("submission_status")
 }
 
 enum Difficulty {
   EASY
   MEDIUM
   HARD
+  
+  @@map("difficulty")
+}
+
+model ProblemSolved {
+  id          String    @id @default(cuid())
+  userId      String
+  problemId   String
+  solvedAt    DateTime  @default(now())
+  
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  problem     Problem   @relation(fields: [problemId], references: [id], onDelete: Cascade)
+  
+  @@unique([userId, problemId])
+  @@map("problem_solved")
 }

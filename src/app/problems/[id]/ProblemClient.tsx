@@ -8,6 +8,7 @@ import { QueryEditor } from '@/src/components/problems/QueryEditor'
 import { ResultTable } from '@/src/components/problems/ResultTable'
 import { Button } from '@/src/components/ui/button'
 import { Alert, AlertDescription } from '@/src/components/ui/alert'
+import { SubmitResultModal } from '@/src/components/SubmitResultModal'
 
 interface ProblemClientProps {
   initialProblem: any
@@ -15,12 +16,23 @@ interface ProblemClientProps {
 
 export function ProblemClient({ initialProblem }: ProblemClientProps) {
   const router = useRouter()
-  const [query, setQuery] = useState("-- Write your SQL query here\nSELECT * FROM employees;")
+  const [query, setQuery] = useState("SELECT * FROM employees;")
+
   const [result, setResult] = useState<any[] | null>(null)
   const [isRunning, setIsRunning] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [isCorrect, setIsCorrect] = useState<boolean | null>(null)
+  
+  // Modal state
+  const [showModal, setShowModal] = useState(false)
+  const [submissionResult, setSubmissionResult] = useState({
+    isCorrect: false,
+    isNewSolve: false,
+    message: ''
+  })
 
+  // Run query (just executes, doesn't grade)
   const runQuery = async () => {
     setIsRunning(true)
     setError(null)
@@ -48,9 +60,6 @@ export function ProblemClient({ initialProblem }: ProblemClientProps) {
       
       if (!data.isCorrect) {
         setError(data.message)
-      } else {
-        // Show success message
-        console.log('Success:', data.message)
       }
     } catch (err: any) {
       setError(err.message)
@@ -60,8 +69,75 @@ export function ProblemClient({ initialProblem }: ProblemClientProps) {
     }
   }
 
+  // Submit query (grades and tracks solves)
+  const submitQuery = async () => {
+    setIsSubmitting(true)
+    setError(null)
+    
+    try {
+      const response = await fetch('/api/submit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          problemId: initialProblem.id,
+          sql: query  // Note: using 'sql' not 'query' to match backend
+        })
+      })
+      
+      const data = await response.json()
+      
+      if (!response.ok) {
+        throw new Error(data.error || 'Submission failed')
+      }
+      
+      // Show the modal with results
+      setSubmissionResult({
+        isCorrect: data.correct,
+        isNewSolve: data.isNewSolve,
+        message: data.message
+      })
+      setShowModal(true)
+      
+      // Also update the result display if correct
+      if (data.correct && data.rows) {
+        setResult(data.rows)
+        setIsCorrect(true)
+      }
+      
+    } catch (err: any) {
+      setError(err.message)
+      // Show error modal or toast
+      setSubmissionResult({
+        isCorrect: false,
+        isNewSolve: false,
+        message: err.message
+      })
+      setShowModal(true)
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  const handleModalClose = () => {
+    setShowModal(false)
+    // If correct, optionally redirect to profile or stay
+    if (submissionResult.isCorrect) {
+      // Uncomment if you want auto-redirect after modal closes
+      // router.push('/profile')
+    }
+  }
+
   return (
-    <div className="flex flex-col h-screen">
+    <div className="flex flex-col h-screen overflow-scroll-auto">
+      {/* Modal */}
+      <SubmitResultModal
+        isOpen={showModal}
+        onClose={handleModalClose}
+        isCorrect={submissionResult.isCorrect}
+        isNewSolve={submissionResult.isNewSolve}
+        problemTitle={initialProblem.title}
+      />
+
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 p-4 h-full overflow-hidden">
         {/* Left Panel - Problem Statement */}
         <div className="overflow-auto border rounded-lg p-4 bg-white dark:bg-gray-900">
@@ -76,13 +152,15 @@ export function ProblemClient({ initialProblem }: ProblemClientProps) {
         </div>
         
         {/* Right Panel - Editor & Results */}
-        <div className="flex flex-col gap-4 h-full overflow-hidden">
-          <div className="flex-1 min-h-0">
+        <div className="flex flex-col gap-4 h-full overflow-scroll-auto">
+          <div className="flex-1 min-h-50">
             <QueryEditor
               value={query}
               onChange={setQuery}
               onRun={runQuery}
+              onSubmit={submitQuery}
               isRunning={isRunning}
+              isSubmitting={isSubmitting}
             />
           </div>
           
@@ -98,7 +176,7 @@ export function ProblemClient({ initialProblem }: ProblemClientProps) {
             {isCorrect === true && (
               <Alert className="mb-2 bg-green-50 border-green-500">
                 <AlertDescription className="text-green-700">
-                  ✓ Correct! Your query passed all tests.
+                  ✓ Your query is correct! Click "Submit" to save your solution.
                 </AlertDescription>
               </Alert>
             )}
