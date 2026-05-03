@@ -53,7 +53,7 @@ export default function DuelPage() {
     channel.on('presence', { event: 'sync' }, () => {
       const state = channel.presenceState()
       const players = Object.values(state).flat()
-      console.log('Presence state:', state, 'count:', players.length)
+    //   console.log('Presence state:', state, 'count:', players.length)
 
       // Check for 2 different users, not just 2 entries
       const uniqueUserIds = new Set(players.map((p: any) => p.userId))
@@ -99,7 +99,7 @@ export default function DuelPage() {
 
   const fetchRoomDetails = async () => {
     try {
-      console.log("Fetching room:", params.roomId);
+    //   console.log("Fetching room:", params.roomId);
       const response = await fetch(`/api/duel/room/${params.roomId}`);
 
       if (!response.ok) {
@@ -107,7 +107,7 @@ export default function DuelPage() {
       }
 
       const data = await response.json();
-      console.log("Room data received:", data);
+    //   console.log("Room data received:", data);
       setRoom(data);
     } catch (error) {
       console.error("Failed to fetch room details:", error);

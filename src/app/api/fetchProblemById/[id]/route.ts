@@ -9,7 +9,7 @@ export async function GET(
   try {
     const { id } = await context.params; // ✅ FIX
 
-    console.log("Fetching problem with ID:", id);
+    // console.log("Fetching problem with ID:", id);
 
     const problem = await prisma.problem.findUnique({
       where: { id },

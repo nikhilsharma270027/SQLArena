@@ -10,7 +10,7 @@ export async function GET(
     // ✅ Await the params (Next.js 16+ requirement)
     const { roomId } = await params
     
-    console.log('Fetching duel room with ID:', roomId)
+    // console.log('Fetching duel room with ID:', roomId)
 
     const duelRoom = await prisma.duelRoom.findUnique({
       where: { id: roomId },
@@ -34,14 +34,14 @@ export async function GET(
     })
 
     if (!duelRoom) {
-      console.log('Duel room not found:', roomId)
+    //   console.log('Duel room not found:', roomId)
       return NextResponse.json(
         { error: 'Duel room not found' },
         { status: 404 }
       )
     }
 
-    console.log('Duel room found:', duelRoom.id)
+    // console.log('Duel room found:', duelRoom.id)
     return NextResponse.json(duelRoom)
   } catch (error) {
     console.error('Error fetching duel room:', error)
