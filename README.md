@@ -1,36 +1,59 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🐘 SQL Duel – Practice SQL & Challenge Friends
 
-## Getting Started
+A full‑stack web application where users can practice SQL problems (LeetCode‑style) and challenge each other in real‑time 1v1 duels. Built with **Next.js 16**, **Better‑Auth**, **Prisma**, **Neon PostgreSQL**, and **Supabase Realtime**.
 
-First, run the development server:
+![SQL Duel Screenshot](./public/screenshot.png)  <!-- optional: add a real screenshot -->
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## 🚀 Features
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+- ✅ **SQL Playground** – Write and run SQL queries against real database schemas.
+- ✅ **100+ curated problems** (Easy, Medium, Hard) with expected outputs.
+- ✅ **Real‑time Duels** – 1v1 matches using WebSockets (Supabase Realtime).
+- ✅ **Authentication** – Email/password + OAuth (Google, GitHub) via Better‑Auth.
+- ✅ **User Profiles** – Track solved problems, total score, and duels won.
+- ✅ **Secure SQL execution** – Read‑only PostgreSQL user, per‑problem schemas, query timeouts.
+- ✅ **Leaderboard & Statistics** – See rankings and personal progress.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 🛠️ Tech Stack
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Layer          | Technology                                                      |
+|----------------|-----------------------------------------------------------------|
+| Frontend       | Next.js 16 (App Router), Tailwind CSS, Monaco Editor           |
+| Backend        | Next.js API Routes + Custom serverless functions               |
+| Auth           | Better‑Auth (email + Google, GitHub)                           |
+| Database (main)| Neon PostgreSQL + Prisma ORM                                    |
+| SQL Execution  | Dedicated read‑only PostgreSQL user, per‑problem schemas       |
+| Realtime       | Supabase Realtime (Presence & Broadcast)                       |
+| Deployment     | Vercel (frontend) / Neon (DB) / Supabase (realtime)            |
 
-## Learn More
+## 📦 Prerequisites
 
-To learn more about Next.js, take a look at the following resources:
+- Node.js 20+ and npm
+- A [Neon](https://neon.tech) PostgreSQL database
+- A [Supabase](https://supabase.com) project (for realtime)
+- OAuth credentials (optional) for Google/GitHub
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 🔧 Environment Variables
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Create a `.env.local` file in the root:
 
-## Deploy on Vercel
+```env
+# Neon database (full access)
+DATABASE_URL="postgresql://neondb_owner:password@ep-...-pooler.c-6.us-east-1.aws.neon.tech/neondb"
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+# Read‑only connection (must use direct endpoint, not the pooler)
+READONLY_DATABASE_URL="postgresql://sql_runner:password@ep-....c-6.us-east-1.aws.neon.tech/neondb"
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+# Better‑Auth
+BETTER_AUTH_SECRET="your-secret-key"
+BETTER_AUTH_URL="http://localhost:3000"
+
+# OAuth (optional)
+GOOGLE_CLIENT_ID="..."
+GOOGLE_CLIENT_SECRET="..."
+GITHUB_CLIENT_ID="..."
+GITHUB_CLIENT_SECRET="..."
+
+# Supabase Realtime
+NEXT_PUBLIC_SUPABASE_URL="https://your-project.supabase.co"
+NEXT_PUBLIC_SUPABASE_ANON_KEY="your-anon-key"
