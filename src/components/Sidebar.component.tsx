@@ -22,7 +22,7 @@ const SideNav = () => {
   const { theme, setTheme } = useTheme();
 
   const navItems = [
-    { icon: Home, label: "Home", href: "/dashboard" },
+    { icon: Home, label: "Home", href: "/" },
     { icon: Trophy, label: "Leaderboard", href: "/leaderboard" },
     { icon: BarChart3, label: "My Statistics", href: "/statistics" },
     { icon: Swords, label: "Battle History", href: "/battles" },

@@ -35,7 +35,7 @@ const navItems = [
   { name: "Problems", href: "/problems", icon: ServerCrash },
   { name: "Leaderboard", href: "/leaderboard", icon: Trophy },
   { name: "My Statistics", href: "/statistics", icon: BarChart3 },
-  { name: "Battle History", href: "/battles", icon: LucideSword },
+  { name: "Battle History", href: "/battleshistory", icon: LucideSword },
   { name: "Report a Bug", href: "/report", icon: Bug },
 ];
 
