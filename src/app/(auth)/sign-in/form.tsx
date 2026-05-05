@@ -203,7 +203,7 @@ export default function SignInForm() {
             <div className="flex items-center gap-2">
               <Checkbox
                 checked={form.watch("rememberMe")}
-                onCheckedChange={(val: Boolean) =>
+                onCheckedChange={(val) =>
                   form.setValue("rememberMe", !!val)
                 }
               />
