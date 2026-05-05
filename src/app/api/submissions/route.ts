@@ -84,7 +84,7 @@ export async function POST(request: NextRequest) {
                 code: query,
                 status: comparison.isCorrect ? 'ACCEPTED' : 'WRONG_ANSWER',
             }
-        }).catch(err => console.error('Failed to save submission:', err))
+        }).catch((err: Error) => console.error('Failed to save submission:', err))
 
         return NextResponse.json({
             success: true,
